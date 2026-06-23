@@ -1,0 +1,19 @@
+#!/command/with-contenv sh
+# wokku addition: run the Hermes gateway (agent + messaging connectors, e.g.
+# Telegram) as a supervised s6 service. Mirrors upstream's dashboard/run:
+# with-contenv repopulates the env scrubbed by /init; exit 0 (disabled) when
+# HERMES_GATEWAY isn't truthy so the image can ship dashboard-only too.
+# shellcheck shell=sh
+case "${HERMES_GATEWAY:-}" in
+    1|true|TRUE|True|yes|YES|Yes) ;;
+    *)
+        exit 0
+        ;;
+esac
+
+export HOME=/opt/data
+cd /opt/data
+. /opt/hermes/.venv/bin/activate
+
+[ "$(id -u)" = 0 ] || exec hermes gateway run
+exec s6-setuidgid hermes hermes gateway run

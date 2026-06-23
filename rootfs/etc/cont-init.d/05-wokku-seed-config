@@ -1,0 +1,19 @@
+#!/command/with-contenv sh
+# wokku addition: first-boot config seed. Hermes reads secrets (LLM keys,
+# connector tokens) from process env, but structural settings like the model
+# live in $HERMES_HOME/config.yaml. To keep a one-click deploy non-interactive,
+# seed the model from $HERMES_MODEL when provided and no config.yaml exists yet.
+# Without $HERMES_MODEL the user picks a model in the dashboard UI (also fine).
+# Runs after upstream's 01-hermes-setup / 02-reconcile-profiles (lexical order).
+# shellcheck shell=sh
+set -e
+
+HERMES_HOME="${HERMES_HOME:-/opt/data}"
+config="${HERMES_HOME}/config.yaml"
+
+if [ -n "${HERMES_MODEL:-}" ] && [ ! -f "$config" ]; then
+    mkdir -p "$HERMES_HOME"
+    printf 'model: %s\n' "$HERMES_MODEL" > "$config"
+    # Ownership is fixed by upstream's 015-supervise-perms init.
+    echo "[wokku] seeded ${config} with model=${HERMES_MODEL}"
+fi
