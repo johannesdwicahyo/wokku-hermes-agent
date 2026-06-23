@@ -1,0 +1,16 @@
+{
+  "healthchecks": {
+    "web": [
+      {
+        "type": "startup",
+        "name": "dashboard /api/status",
+        "description": "Public liveness endpoint. First boot is slow (~90s) — config migration + syncing bundled skills to the /opt/data volume — so we wait generously (replaces Dokku's short default uptime + listening checks).",
+        "path": "/api/status",
+        "attempts": 36,
+        "initialDelay": 30,
+        "wait": 10,
+        "timeout": 10
+      }
+    ]
+  }
+}
