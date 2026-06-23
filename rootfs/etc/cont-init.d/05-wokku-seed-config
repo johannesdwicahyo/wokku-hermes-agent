@@ -10,10 +10,24 @@ set -e
 
 HERMES_HOME="${HERMES_HOME:-/opt/data}"
 config="${HERMES_HOME}/config.yaml"
+mkdir -p "$HERMES_HOME"
 
 if [ -n "${HERMES_MODEL:-}" ] && [ ! -f "$config" ]; then
-    mkdir -p "$HERMES_HOME"
     printf 'model: %s\n' "$HERMES_MODEL" > "$config"
     # Ownership is fixed by upstream's 015-supervise-perms init.
     echo "[wokku] seeded ${config} with model=${HERMES_MODEL}"
 fi
+
+# Enable the bundled "basic" dashboard auth plugin (username/password, no
+# external OAuth IDP). Without an auth provider the dashboard REFUSES to bind
+# to 0.0.0.0 and exits — which crash-loops the container. With this enabled
+# and HERMES_DASHBOARD_BASIC_AUTH_USERNAME/_PASSWORD set (the wokku template
+# generates the password), the dashboard binds, password-protected.
+# Idempotent; runs as the hermes user so it writes the volume's config.yaml.
+. /opt/hermes/.venv/bin/activate 2>/dev/null || true
+if [ "$(id -u)" = 0 ]; then
+    s6-setuidgid hermes hermes plugins enable basic >/dev/null 2>&1 || true
+else
+    hermes plugins enable basic >/dev/null 2>&1 || true
+fi
+echo "[wokku] ensured dashboard 'basic' auth plugin is enabled"

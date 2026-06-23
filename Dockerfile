@@ -17,7 +17,8 @@ FROM nousresearch/hermes-agent:v2026.6.19
 # dashboard). Dashboard binds 0.0.0.0:9119; Dokku routes the domain to it.
 ENV HERMES_GATEWAY=1 \
     HERMES_DASHBOARD_HOST=0.0.0.0 \
-    HERMES_DASHBOARD_PORT=9119
+    HERMES_DASHBOARD_PORT=9119 \
+    HERMES_DASHBOARD_BASIC_AUTH_USERNAME=admin
 
 # Our additions: the supervised gateway service + the first-boot config seed.
 COPY rootfs/ /
